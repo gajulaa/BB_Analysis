@@ -6,4 +6,4 @@ The inital, unclean dataset is BigBasket Products.csv and final cleaned dataset 
 Project is still being improved upon as of July 19th, 2022. Commit message will displayed as follows: 
  - final commit: changes are final 
  - mod commit: changes have been added (brief notes will added to commit messages)
- - initial commit: first upload
+ - initial commit: first upload (can also be displayed as added files via upload 
