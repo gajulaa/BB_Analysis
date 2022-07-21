@@ -3,4 +3,7 @@ This repository contains relevant files related to the project. All files are up
 
 The inital, unclean dataset is BigBasket Products.csv and final cleaned dataset is BigBasket Final.csv
 
-Project is still being improved upon as of July 19th, 2022. When changes are final, commit message will displayed as follows: final commit
+Project is still being improved upon as of July 19th, 2022. Commit message will displayed as follows: 
+ - final commit: changes are final 
+ - mod commit: changes have been added (brief notes will added to commit messages)
+ - initial commit: first upload
