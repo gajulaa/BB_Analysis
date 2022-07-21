@@ -1,0 +1,191 @@
+---
+title: "BigBasket Products and Price Analysis"
+author: "Anirudha Gajula"
+date: "2022-7-11"
+output:
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
+---
+
+# Introduction of The Company and Dataset
+
+BigBasket is an online food and grocery store that delivers personal and household needs right to the customer's doorstep. It was founded on October 1st, 2011 by a group of people (Abhinay Choudhari, Hari Menon, Vipul Parekh, VS Ramesh, and VS Sudhakar).
+
+The brand is expanding well. It has raised an estimated \$1.3B in over 19 rounds. Its most recent funding was raised on June 2nd, 2022 in an undisclosed round. It has notable investors partnering with it's growth too. Such as, Alibaba Group, CDC Group and so on.
+
+Dataset relating to the company's products and prices has been downloaded from Kaggle.com. It contains the entire catalog of products listed on the e-commerce giant's website (\~ 28K). The dataset contains a **usability score** of 10 and carries a **Creative Commons License** (CC BY-NC-SA 4.0). The usability score determines how well documented and usable the dataset is, according to set parameters. The license on the other hand, dictates the terms of usage for the dataset.
+
+In addition to the product listing, it also lists the sale price, market price, category, sub-category and description of each product. All of the rows are indexed to an index column (makes it easier to identify rows).
+
+# Data Cleaning and Exploration
+
+Let's face it. Data is *mostly* unclean majority of the time. Do not be fooled by the usability score. It only determines how **well documented** the dataset is. That is, data validation could be perfect; column names are concise and descriptive; Data is formatted properly; Metadata is extensive and so on. However, it does not guarantee against presence of NA values (missing data).
+
+This dataset in particular had NA values consisting of more than 30 percent when combining NA counts from all the columns. See below:
+
+```{r NA Count From All Columns, echo=FALSE, message=FALSE, warning=FALSE}
+library(tidyverse)
+BB <- read_csv("BigBasket Products.csv")
+colSums(is.na(BB)) 
+```
+
+In the tibble above, NA value counts of each column is listed. Rating has quite a bit of NAs followed by Description column. 8626 NA values to be exact. That amounts to a rounded estimate of 31.3 percent of all values in the column. Which inevitably affects all the rows in the data frame.
+
+Where are these 30 percent of NA values coming from? Let's find out 
+
+```{r NA Count By Category, echo=FALSE, message=FALSE, warning=FALSE}
+aggregate(rating ~ category,
+                             BB,
+                             function(rating) {sum(is.na(rating))},
+                             na.action = NULL)
+```
+
+Beauty and Hygiene have the most NA values followed by Gourmet & World Food. While Baby Care has the least NA values. t raises the question of how people are rating the products. To be more precise, Who are buying the products? parents? People who are part of a family? More data is needed to conduct further analysis in this aspect. 
+
+You cannot be satisfied with just identifying NA values. You need to check for duplicates and incorrect format as well. See below:
+
+```{r Checking for Duplicates, echo=FALSE, message=FALSE, warning=FALSE}
+library(tidyverse)
+BB <- read_csv("BigBasket Products.csv")
+dupe_record <- duplicated(BB$index)
+sum(dupe_record) 
+```
+
+No duplicates were detected when passing the index column through a duplicated function. How about a different approach?
+
+```{r Checking for Duplicates (2nd Approach), echo=FALSE, message=FALSE, warning=FALSE}
+library(tidyverse)
+BB <- read_csv("BigBasket Products.csv")
+dupe_table <-  duplicated(as.list(BB))
+colnames(BB[dupe_table])
+View(dupe_table)
+```
+
+The dataset was converted to a list and passed through a base function duplicated() as it utilizes vectors. The output lists columns that have duplicated values. No duplicates exist.
+
+How about getting a glimpse to see how data is formatted in the columns?
+
+```{r Glimpse of Data, echo=FALSE, message=FALSE, warning=FALSE}
+glimpse(BB)
+```
+
+If you notice, market price does not display decimal points. Let's fix that shall we?
+
+```{r Formatting Data (Decimal Points), message=FALSE, warning=FALSE, include=FALSE}
+library(formattable)
+formattable(BB$market_price, format = "f", digits = 2)
+```
+
+```{r Gimpse of Formatted Data, echo=FALSE, message=FALSE, warning=FALSE}
+head(BB, 10)
+```
+
+After passing the sale price column through a formattable function from the formattable package and modifying a few parameters, market price column is now  consistent with how sale price is displayed.
+
+Cleaning is not done yet. Where is the data located? Any discrepancies? Let's check:
+
+```{r Summary Stats, echo=FALSE, message=FALSE, warning=FALSE}
+summary(BB)
+```
+
+No surprises in the data. Prices are where they are expected to be. No weird values (like -5 or 1,000,000). Rating is normal. Values don't go beyond the minimum and maximum limits. Same goes for Index too. All the columns are in the right classes.
+
+Since the next step is dealing with NA values in the Rating column, Let's quickly verifying how rating relates to the different types of prices and check its own distribution as well.
+
+Firstly, Rating against Sale Price
+
+```{r Scatter Plot (Rating~ Sale Price), echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(BB, aes(x = rating, y = sale_price)) +
+  geom_point(aes(fill = sale_price), shape = 21) +
+  scale_fill_gradient2(
+    low = "red",
+    high = "blue",
+    mid = "white",
+    midpoint = 6250
+  ) +
+  geom_smooth(se = FALSE) +
+  labs(
+    title = "Sale Price vs Rating (Original Dataset)",
+    x = "Overall Rating",
+    y = "Sale Price in Rupees",
+    caption = "Data from Kaggle.com",
+    subtitle = "No correlation found. Overall rating is not dependent on
+    sale price"
+  )
+```
+
+Next, Rating against Market Price:
+
+```{r Scatter Plot (Rating ~ Market Price), echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(BB, aes(x = rating, y = market_price)) +
+  geom_point(aes(fill = market_price), shape = 21) +
+  scale_fill_gradient2(
+    low = "red",
+    high = "blue",
+    mid = "white",
+    midpoint = 6250
+  ) +
+  geom_smooth(se = FALSE) +
+  labs(
+    title = "Market Price vs Rating (Original Dataset)",
+    x = "Overall Rating",
+    y = "Market Price in Rupees",
+    caption = "Data from Kaggle.com",
+    subtitle = "No correlation found. Overall rating is not dependent on
+    market price"
+  )
+```
+
+Both the graphs show that rating has no correlation with either Market Price or Sale Price. Yes, there are slight changes in data points themselves, 
+but no correlation nonetheless. 
+
+Can't forget about Rating column's distribution: 
+
+```{r Violin Plot of Rating, echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(BB, aes(y = rating, x = '')) +
+  geom_violin() +
+  stat_summary(fun = median, geom = "point", color = "red") +
+  labs(
+    title = "Data Distribution of Rating",
+    subtitle = "Data point distribution is nuanced",
+    caption = "Data from Kaggle.com",
+    x = "Rating",
+    y = "Rating Value"
+  )
+```
+
+Data is mostly clustered around the median (red dot) between 4 - 4.5. There are also smaller individual clusters around whole numbers across the spectrum.
+
+Let us also verify how average overall rating distributes across categories. 
+
+```{r Average Overall Rating Grouped By Category, echo=FALSE, message=FALSE, warning=FALSE}
+temp2 <- BB %>% 
+  select(category, rating) %>% 
+  group_by(category) %>% 
+  summarise(Count = n(), avg_rating = mean(rating, na.rm = TRUE))
+```
+
+Nan values have been flagged. These values are basically expressions that dont have a defined result (e.g, 0/0). This step was crucial. Without it, we would not have detected presence of NaN values. We would have only acknowledged presence of NA values. To get a better understanding, let us visualize it
+
+```{r Bar Plot of Combined Overall Average Across Categories, echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(temp2, aes(x = category, y = avg_rating)) +
+  geom_bar(stat = 'identity', aes(fill = avg_rating)) +
+  scale_fill_distiller(palette = "Blues") +
+  guides(x = guide_axis(angle = 45)) +
+  labs(
+    title = "Average of Combined Overall Rating Across Categories", 
+    x = "Categories",
+    y = "Average Rating"
+  )
+```
+
+While looking at the tibble, it can be hard to immediately grasp an image of how 
+the data looks like. When the tibble was graphed and filled in with regard to average rating, it created a gradient. This allowed for much more immediate grasping of what's going with the data despite very subtle differences. Nan Values have been removed as expected. 
+
+Checking all of these relationships is important. Because NA values will be filled due to the proportion of missing data being heavily significant. If data changes, verifying original data relationships against new ones will help us quickly identify unfavorable changes. 
+
+However, before filling in NA values, we must identify the pattern of Missing Data. Is it Missing Completely At Random (MCAR)? Missing At Random (MAR)?, Missing Not At Random (MNAR)? To get to the point, are the missing values in Rating column missing because of values in other columns? That is the question we are trying to answer. 
+
+
+
