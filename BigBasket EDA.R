@@ -27,13 +27,16 @@
 # price across the product catalog.s
 
 # 4. Is the Brand considered expensive? How is the distribution of prices
-# across categories? What about rating?
+# across categories? 
 
 # No. the Brand is considered inexpensive. While prices can range from ₹3 to
 # ₹12500, majority of the price points are clustered below ₹2000. Rating is far
 # more nuanced and represents the complexity behind customer review behavior.
 # Multiple factors affect the overall rating and these factors are not visible
-# in the dataset.
+# in the dataset. 
+
+
+# Any insights on consumer behavior? Are ratings indicative of any patterns?
 
 # Cleaning notes:
 # No duplicates or human error was found. Dataset on Kaggle.com had a usability
