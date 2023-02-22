@@ -24,7 +24,7 @@
 # 3. Are any products being sold at a lower sale price? if so, by how much?
 
 # Yes. a combined average of 13.7 percent decrease from market price to sale
-# price acros the product catalog.
+# price across the product catalog.s
 
 # 4. Is the Brand considered expensive? How is the distribution of prices
 # across categories? What about rating?
@@ -112,6 +112,8 @@ BB %>%
 BB_dupe <- BB
 BB_dupe$rating_na <- ifelse(is.na(BB_dupe$rating), 1, 0)
 BB_dupe$desc_na <- ifelse(is.na(BB_dupe$description), 1, 0)
+
+write.csv(BB_dupe, file = "Modified BigBasket.csv")
 
 t.test(BB_dupe$sale_price ~ BB_dupe$rating_na, var.equal = TRUE)
 t.test(BB_dupe$market_price ~ BB_dupe$rating_na, var.equal = TRUE)
@@ -297,6 +299,10 @@ BB_dupe$desc_na <- ifelse(is.na(BB_dupe$description), 1, 0)
 
 # created and added the dummy variables(rating_na, desc_na) into the duplicate
 # data frame.
+
+write.csv(BB_dupe, file = "Modified BigBasket.csv")
+# saving the duplicate table with added columns as a csv file for further 
+# reference and documentation. 
 
 # commencing T- tests on continuous and Chi-squared tests on categorical
 # variables to determine missingness pattern.
